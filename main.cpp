@@ -50,7 +50,7 @@ int main()
     glViewport(0, 0, 800, 600);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    IMGUI_CHECKVERSION();
+    
 
     /*
 	 * Render loop
