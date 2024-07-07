@@ -2,6 +2,24 @@
 #define COREWINDOW_CPP
 #include <cstdlib>
 #include "CoreWindow.h"
+#include "../Utils/EnvironmentVariablesUtils.cpp"
+
+/*
+ * Initializes GLFW before creating a window
+ */
+CoreWindow::CoreWindow()
+{
+    if (!glfwInit())
+    {
+        std::cout << "Failed to initialize GLFW" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // for Mac OS X
+}
 
 GLFWwindow* CoreWindow::createWindow(const char* title)
 {
