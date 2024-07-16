@@ -17,6 +17,7 @@ Camera::Camera(GLFWwindow* window)
 	lastY = 300;
 
 	fov = 45.0f;
+	lastFOV = fov;
 
 	deltaTime = 0.0f;
 	lastFrame = 0.0f;
@@ -27,6 +28,8 @@ Camera::Camera(GLFWwindow* window)
 	farPlane = 100.0f;
 	lastClosePlane = closePlane;
 	lastFarPlane = farPlane;
+
+	shouldUpdate = true;
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -83,14 +86,19 @@ void Camera::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void Camera::Update()
 {
+	shouldUpdate = false;
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
 
-	if (width != lastW || height != lastH || closePlane != lastClosePlane || farPlane != lastFarPlane)
+	if (width != lastW || height != lastH || closePlane != lastClosePlane || farPlane != lastFarPlane || fov != lastFOV)
 	{
 		glm::ortho(0.0f, (float)width, 0.0f, (float)height, closePlane, farPlane);
 		lastClosePlane = closePlane;
 		lastFarPlane = farPlane;
+		lastW = width;
+		lastH = height;
+		lastFOV = fov;
+		shouldUpdate = true;
 	}
 
 	// Time between current frame and last frame
@@ -149,4 +157,9 @@ glm::vec3 Camera::GetRotation()
 glm::mat4 Camera::GetViewMatrix()
 {
 	return glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+}
+
+bool Camera::ShouldUpdate()
+{
+	return shouldUpdate;
 }

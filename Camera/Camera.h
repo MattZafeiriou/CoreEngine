@@ -22,6 +22,7 @@ public:
 	glm::mat4 GetViewMatrix();
 	int GetWidth();
 	int GetHeight();
+	bool ShouldUpdate();
 private:
 	glm::vec3 cameraPos;
 	glm::vec3 cameraFront;
@@ -35,7 +36,9 @@ private:
 	float lastH;
 	float lastClosePlane;
 	float lastFarPlane;
+	float lastFOV;
 	bool firstMouse;
+	bool shouldUpdate;
 	GLFWwindow* window;
 };
 

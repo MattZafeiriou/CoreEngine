@@ -52,27 +52,34 @@ glm::vec3 CoreObject::GetRotation()
 glm::mat4 CoreObject::GetModelMatrix()
 {
 	model = glm::mat4(1.0f);
-	model = glm::translate(model, position);
-	model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::scale(model, scale);
+	if (position != glm::vec3(0.0f, 0.0f, 0.0f))
+		model = glm::translate(model, position);
+	if (rotation != glm::vec3(0.0f, 0.0f, 0.0f))
+	{
+		model = glm::rotate(model, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+	if (scale != glm::vec3(1.0f, 1.0f, 1.0f))
+		model = glm::scale(model, scale);
 	return model;
 }
 
 void CoreObject::SetShader()
-{
+{	
 	shader->use();
-	shader->setMat4("model", GetModelMatrix());
+	if (camera->ShouldUpdate())
+	{
+		glm::mat4 projection = glm::perspective(glm::radians(camera->getFov()), (float)camera->GetWidth() / (float)camera->GetHeight(), camera->closePlane, camera->farPlane);
+
+		shader->setMat4("projection", projection);
+	}
+	shader->setMat4("view", camera->GetViewMatrix());
 }
 
 void CoreObject::Draw()
 {
 	glBindVertexArray(VAO);
-	glm::mat4 projection = glm::perspective(glm::radians(camera->getFov()), (float)camera->GetWidth() / (float)camera->GetHeight(), camera->closePlane, camera->farPlane);
-
-	shader->setMat4("projection", projection);
-	shader->setMat4("view", camera->GetViewMatrix());
-	SetShader();
+	shader->setMat4("model", GetModelMatrix());
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }

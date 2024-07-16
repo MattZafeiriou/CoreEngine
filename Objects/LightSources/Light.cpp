@@ -6,6 +6,9 @@ Light::Light(Camera* camera, GLuint VAO, Shader* shader, glm::vec3 color, float 
 	this->intensity = intensity;
 }
 
+Light::Light()
+{}
+
 Light::~Light()
 {
 }

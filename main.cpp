@@ -9,6 +9,8 @@
 #include "Camera/Camera.h"
 #include "Objects/CoreObject.h"
 #include "Objects/LightSources/Light.h"
+#include <string>
+#include <random>
 
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
@@ -157,6 +159,13 @@ int main()
 	glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	glm::vec3 lightSourcesPositions[] = {
+		glm::vec3(0.7f, 0.2f, 2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f, 2.0f, -12.0f),
+		glm::vec3(0.0f, 0.0f, -3.0f)
+	};
+
 	CoreObject cubes[10];
 	for (int i = 0; i < 10; i++)
 	{
@@ -164,7 +173,20 @@ int main()
 		cubes[i].SetPosition(cubePositions[i].x, cubePositions[i].y, cubePositions[i].z);
 	}
 
-	Light lightSource(&camera, lightVAO, &light, glm::vec3(1.0f, 1.0f, 1.0f), 6.0f);
+	Light lightSources[4];
+
+	Light lightSource(&camera, lightVAO, &light, glm::vec3(1.0f, 1.0f, 0.0f), 1.0f);
+	for (int i = 0; i < 4; i++)
+	{
+		lightSources[i] = Light(&camera, lightVAO, &light, glm::vec3(1.0f), 1.0f);
+		lightSources[i].SetPosition(lightSourcesPositions[i].x, lightSourcesPositions[i].y, lightSourcesPositions[i].z);
+		lightSources[i].SetScale(0.2f, 0.2f, 0.2f);
+		lightSources[i].SetColor(glm::vec3((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f));
+		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].position")).c_str(), lightSources[i].GetPosition());
+		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].diffuse")).c_str(), lightSources[i].GetColor());
+		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].specular")).c_str(), lightSources[i].GetColor() * glm::vec3(0.5));
+		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].ambient")).c_str(), lightSources[i].GetColor() * glm::vec3(0.2));
+	}
 	lightSource.SetPosition(lightPos.x, lightPos.y, lightPos.z);
 	lightSource.SetScale(0.2f, 0.2f, 0.2f);
 
@@ -178,21 +200,27 @@ int main()
 	{
 		// input
 		processInput(window);
-		camera.Update();
 
 		// rendering commands here
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		float x = sin(glfwGetTime());
+		const float time = glfwGetTime();
+		float x = sin(time);
 		float y = 0.0f;
-		float z = cos(glfwGetTime());
-		float radius = 20.0f;
+		float z = cos(time);
+		float radius = 10.0f;
 		lightSource.SetRotation(x, y, z);
 		lightSource.SetPosition(-x * radius, -y * radius, -z * radius);
 		// light source
+		lightSource.SetShader();
 		lightSource.Draw();
 
+		for (int i = 0; i < 4; i++)
+		{
+			lightSources[i].Draw();
+		}
 		// cube
+		cubes[0].SetShader();
 		shader.setVec3("dLight.direction", lightSource.GetRotation());
 		shader.setVec3("viewPos", camera.GetPosition());
 
@@ -202,6 +230,7 @@ int main()
 		}
 
 		// check and call events and swap the buffers
+		camera.Update();
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
