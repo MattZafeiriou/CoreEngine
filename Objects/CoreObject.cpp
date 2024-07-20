@@ -1,4 +1,5 @@
 #include "CoreObject.h"
+#include "../Mesh/Model.h"
 
 CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader)
 {
@@ -9,6 +10,20 @@ CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader)
 	this->shader = shader;
 	this->VAO = VAO;
 	this->camera = camera;
+	this->isModel = false;
+}
+
+CoreObject::CoreObject(Camera* camera, const char* path, Shader* shader, bool flip)
+{
+	position = glm::vec3(0.0f, 0.0f, 0.0f);
+	rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	scale = glm::vec3(1.0f, 1.0f, 1.0f);
+	model = glm::mat4(1.0f);
+	this->shader = shader;
+	this->camera = camera;
+	this->isModel = true;
+	Model model(path, flip);
+	meshes = model.GetMeshes();
 }
 
 CoreObject::CoreObject()
@@ -27,6 +42,11 @@ void CoreObject::SetPosition(float x, float y, float z)
 void CoreObject::SetScale(float x, float y, float z)
 {
 	scale = glm::vec3(x, y, z);
+}
+
+void CoreObject::SetScale(float scale)
+{
+	this->scale = glm::vec3(scale, scale, scale);
 }
 
 void CoreObject::SetRotation(float x, float y, float z)
@@ -65,13 +85,17 @@ glm::mat4 CoreObject::GetModelMatrix()
 	return model;
 }
 
+glm::mat4 CoreObject::GetProjectionMatrix()
+{
+	return glm::perspective(glm::radians(camera->getFov()), (float)camera->GetWidth() / (float)camera->GetHeight(), camera->closePlane, camera->farPlane);
+}
+
 void CoreObject::SetShader()
 {	
 	shader->use();
 	if (camera->ShouldUpdate())
 	{
-		glm::mat4 projection = glm::perspective(glm::radians(camera->getFov()), (float)camera->GetWidth() / (float)camera->GetHeight(), camera->closePlane, camera->farPlane);
-
+		glm::mat4 projection = GetProjectionMatrix();
 		shader->setMat4("projection", projection);
 	}
 	shader->setMat4("view", camera->GetViewMatrix());
@@ -79,7 +103,23 @@ void CoreObject::SetShader()
 
 void CoreObject::Draw()
 {
-	glBindVertexArray(VAO);
 	shader->setMat4("model", GetModelMatrix());
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	if (!isModel){
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+	else
+	{
+		//shader->setBool("hasTexture", true);
+		for (int i = 0; i < meshes.size(); i++)
+		{
+			meshes[i].Draw(*shader, i == 0, false);
+		}
+	}
+}
+
+void CoreObject::SetCamera(Camera* camera)
+{
+	this->camera = camera;
 }

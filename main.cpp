@@ -10,7 +10,9 @@
 #include "Objects/CoreObject.h"
 #include "Objects/LightSources/Light.h"
 #include <string>
-#include <random>
+#include "Mesh/Model.h"
+#include "Objects/Plane/Plane.h"
+#include "Objects/Cube/Cube.h"
 
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
@@ -34,7 +36,9 @@ static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 int main()
 {
+	Assimp::Importer importer;
 	setEnvironmentVariables(1); // Set DEBUG to 1
+	setEnvironmentVariable("CORE_VERSION", "0.1.0");
 
 	/*
 	 * Create a windowed mode window and its OpenGL context
@@ -104,14 +108,15 @@ int main()
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -120,7 +125,6 @@ int main()
 	glEnableVertexAttribArray(2);
 
 	Shader shader("Shaders/VertexShaders/test.glsl", "Shaders/FragmentShaders/test.glsl");
-	shader.use();
 
 	unsigned int lightVAO;
 	glGenVertexArrays(1, &lightVAO);
@@ -133,10 +137,10 @@ int main()
 	glBindVertexArray(0);
 
 	Shader light("Shaders/VertexShaders/test.glsl", "Shaders/FragmentShaders/light.glsl");
-	light.use();
 
 	int diffuse = loadTexture("Resources/Textures/container2.png", 1);
 	int specular = loadTexture("Resources/Textures/container2_specular.png", 1);
+
 	shader.use();
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuse);
@@ -166,33 +170,33 @@ int main()
 		glm::vec3(0.0f, 0.0f, -3.0f)
 	};
 
-	CoreObject cubes[10];
+	Cube cubes[10];
 	for (int i = 0; i < 10; i++)
 	{
-		cubes[i] = CoreObject(&camera, VAO, &shader);
+		cubes[i] = Cube(&camera, &shader);
 		cubes[i].SetPosition(cubePositions[i].x, cubePositions[i].y, cubePositions[i].z);
 	}
 
 	Light lightSources[4];
 
-	Light lightSource(&camera, lightVAO, &light, glm::vec3(1.0f, 1.0f, 0.0f), 1.0f);
 	for (int i = 0; i < 4; i++)
 	{
 		lightSources[i] = Light(&camera, lightVAO, &light, glm::vec3(1.0f), 1.0f);
 		lightSources[i].SetPosition(lightSourcesPositions[i].x, lightSourcesPositions[i].y, lightSourcesPositions[i].z);
 		lightSources[i].SetScale(0.2f, 0.2f, 0.2f);
-		lightSources[i].SetColor(glm::vec3((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f));
+		lightSources[i].SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
 		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].position")).c_str(), lightSources[i].GetPosition());
 		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].diffuse")).c_str(), lightSources[i].GetColor());
 		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].specular")).c_str(), lightSources[i].GetColor() * glm::vec3(0.5));
 		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].ambient")).c_str(), lightSources[i].GetColor() * glm::vec3(0.2));
 	}
-	lightSource.SetPosition(lightPos.x, lightPos.y, lightPos.z);
-	lightSource.SetScale(0.2f, 0.2f, 0.2f);
 
-	shader.setVec3("dLight.ambient", lightSource.GetColor() * glm::vec3(0.2f));
-	shader.setVec3("dLight.diffuse", lightSource.GetColor() * glm::vec3(1.0f));
-	shader.setVec3("dLight.specular", lightSource.GetColor()* glm::vec3(0.5f));
+	CoreObject bruh(&camera, "Resources/Models/backpack/backpack.obj", &shader, true);
+	bruh.SetScale(0.3f);
+	bruh.SetPosition(0.0f, -2.0f, 0.0f);
+
+	Plane floor(&camera, &shader);
+	floor.SetScale(10.0f);
 	/*
 	 * Render loop
 	*/
@@ -206,27 +210,29 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		const float time = glfwGetTime();
 		float x = sin(time);
-		float y = 0.0f;
+		float y = 2.0f;
 		float z = cos(time);
 		float radius = 10.0f;
-		lightSource.SetRotation(x, y, z);
-		lightSource.SetPosition(-x * radius, -y * radius, -z * radius);
 		// light source
-		lightSource.SetShader();
-		lightSource.Draw();
+		lightSources[0].SetShader();
 
 		for (int i = 0; i < 4; i++)
 		{
 			lightSources[i].Draw();
 		}
 		// cube
-		cubes[0].SetShader();
-		shader.setVec3("dLight.direction", lightSource.GetRotation());
+		floor.SetShader();
 		shader.setVec3("viewPos", camera.GetPosition());
 
-		for (int i = 0; i < 10; i++)
+		shader.setBool("hasTexture", false);
+		floor.Draw();
+		shader.setBool("hasTexture", true);
+		bruh.SetPosition(0.0f, -2.0f, 0.0f);
+		bruh.Draw();
+		for (int i = 1; i <= 10; i++)
 		{
-			cubes[i].Draw();
+			bruh.SetPosition(x * radius / i, y, z * radius / i);
+			bruh.Draw();
 		}
 
 		// check and call events and swap the buffers

@@ -28,8 +28,8 @@ CoreWindow::CoreWindow()
 
 GLFWwindow* CoreWindow::createWindow(const char* title)
 {
-    int width = 800;
-    int height = 600;
+    int width = 1920;
+    int height = 1080;
 
     GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)

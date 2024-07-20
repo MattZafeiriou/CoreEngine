@@ -93,37 +93,81 @@ void Shader::use() const
 	glUseProgram(ID);
 }
 
-void Shader::setBool(const char* name, bool value) const
+void Shader::setBool(const char* name, bool value)
 {
-	glUniform1i(glGetUniformLocation(ID, name), (int)value);
+    if (boolCache.find(name) != boolCache.end() && boolCache[name] == value)
+        return;
+    boolCache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+	glUniform1i(location, (int)value);
 }
 
-void Shader::setInt(const char* name, int value) const
+void Shader::setInt(const char* name, int value)
 {
-	glUniform1i(glGetUniformLocation(ID, name), value);
+    if (intCache.find(name) != intCache.end() && intCache[name] == value)
+        return;
+    intCache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+	glUniform1i(location, value);
 }
 
-void Shader::setFloat(const char* name, float value) const
+void Shader::setFloat(const char* name, float value)
 {
-    glUniform1f(glGetUniformLocation(ID, name), value);
+    if (floatCache.find(name) != floatCache.end() && floatCache[name] == value)
+		return;
+    floatCache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+    glUniform1f(location, value);
 }
 
-void Shader::setVec2(const char* name, glm::vec2 value) const
+void Shader::setVec2(const char* name, glm::vec2 value)
 {
-    glUniform2fv(glGetUniformLocation(ID, name), 1, glm::value_ptr(value));
+    if (vec2Cache.find(name) != vec2Cache.end() && vec2Cache[name] == value)
+        return;
+    vec2Cache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+    glUniform2fv(location, 1, glm::value_ptr(value));
 }
 
-void Shader::setVec3(const char* name, glm::vec3 value) const
+void Shader::setVec3(const char* name, glm::vec3 value)
 {
-    glUniform3fv(glGetUniformLocation(ID, name), 1, glm::value_ptr(value));
+    if (vec3Cache.find(name) != vec3Cache.end() && vec3Cache[name] == value)
+        return;
+    vec3Cache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+    glUniform3fv(location, 1, glm::value_ptr(value));
 }
 
-void Shader::setVec4(const char* name, glm::vec4 value) const
+void Shader::setVec4(const char* name, glm::vec4 value)
 {
-    glUniform4fv(glGetUniformLocation(ID, name), 1, glm::value_ptr(value));
+    if (vec4Cache.find(name) != vec4Cache.end() && vec4Cache[name] == value)
+        return;
+    vec4Cache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+    glUniform4fv(location, 1, glm::value_ptr(value));
 }
 
-void Shader::setMat4(const char* name, glm::mat4 value) const
+void Shader::setMat4(const char* name, glm::mat4 value)
 {
-    glUniformMatrix4fv(glGetUniformLocation(ID, name), 1, GL_FALSE, glm::value_ptr(value));
+    if (mat4Cache.find(name) != mat4Cache.end() && mat4Cache[name] == value)
+		return;
+    mat4Cache[name] = value;
+
+    int location = glGetUniformLocation(ID, name);
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+}
+
+int Shader::getUniformLocation(const char* name)
+{
+	if (uniformLocations.find(name) == uniformLocations.end())
+	{
+		uniformLocations[name] = glGetUniformLocation(ID, name);
+	}
+	return uniformLocations[name];
 }
