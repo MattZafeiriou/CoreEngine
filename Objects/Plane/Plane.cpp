@@ -2,22 +2,34 @@
 
 Plane::Plane(Camera* camera, Shader* shader, glm::vec3 color) : CoreObject(camera, "Resources/Models/Default/plane.obj", shader)
 {
-	for (unsigned int i = 0; i < meshes.size(); i++)
-	{
-		meshes[i].color = color;
-	}
+	SetColor(color);
 }
 
 Plane::~Plane()
 {
 }
 
-void Plane::Draw()
+glm::vec3 Plane::GetColor()
 {
-	shader->setBool("hasTexture", false);
+	return color;
+}
+
+void Plane::SetColor(glm::vec3 color)
+{
+	this->color = color;
+	for (unsigned int i = 0; i < meshes.size(); i++)
+	{
+		meshes[i].GetMaterial()->SetDiffuse(color);
+		meshes[i].GetMaterial()->SetSpecular(color * 0.5f);
+	}
+}
+
+
+void Plane::Draw(bool updateColors)
+{
 	shader->setMat4("model", GetModelMatrix());
 	for (unsigned int i = 0; i < meshes.size(); i++)
 	{
-		meshes[i].Draw(*shader);
+		meshes[i].Draw(*shader, false, updateColors);
 	}
 }

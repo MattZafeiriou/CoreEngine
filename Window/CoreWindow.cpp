@@ -23,7 +23,8 @@ CoreWindow::CoreWindow()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 }
 
 GLFWwindow* CoreWindow::createWindow(const char* title)

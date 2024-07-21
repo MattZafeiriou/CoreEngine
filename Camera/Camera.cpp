@@ -25,7 +25,7 @@ Camera::Camera(GLFWwindow* window)
 	firstMouse = true;
 
 	closePlane = 0.01f;
-	farPlane = 100.0f;
+	farPlane = 500.0f;
 	lastClosePlane = closePlane;
 	lastFarPlane = farPlane;
 

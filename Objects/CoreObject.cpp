@@ -1,7 +1,7 @@
 #include "CoreObject.h"
 #include "../Mesh/Model.h"
 
-CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader)
+CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader, Material* material)
 {
 	position = glm::vec3(0.0f, 0.0f, 0.0f);
 	rotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -11,6 +11,8 @@ CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader)
 	this->VAO = VAO;
 	this->camera = camera;
 	this->isModel = false;
+	this->changedModel = true;
+	materials.push_back(material);
 }
 
 CoreObject::CoreObject(Camera* camera, const char* path, Shader* shader, bool flip)
@@ -24,6 +26,11 @@ CoreObject::CoreObject(Camera* camera, const char* path, Shader* shader, bool fl
 	this->isModel = true;
 	Model model(path, flip);
 	meshes = model.GetMeshes();
+	this->changedModel = true;
+	for (int i = 0; i < meshes.size(); i++)
+	{
+		materials.push_back(meshes[i].GetMaterial());
+	}
 }
 
 CoreObject::CoreObject()
@@ -36,21 +43,33 @@ CoreObject::~CoreObject()
 
 void CoreObject::SetPosition(float x, float y, float z)
 {
+	if (position == glm::vec3(x, y, z))
+		return;
+	changedModel = true;
 	position = glm::vec3(x, y, z);
 }
 
 void CoreObject::SetScale(float x, float y, float z)
 {
+	if (scale == glm::vec3(x, y, z))
+		return;
+	changedModel = true;
 	scale = glm::vec3(x, y, z);
 }
 
 void CoreObject::SetScale(float scale)
 {
+	if (this->scale == glm::vec3(scale, scale, scale))
+		return;
+	changedModel = true;
 	this->scale = glm::vec3(scale, scale, scale);
 }
 
 void CoreObject::SetRotation(float x, float y, float z)
 {
+	if (rotation == glm::vec3(x, y, z))
+		return;
+	changedModel = true;
 	rotation = glm::vec3(x, y, z);
 }
 
@@ -71,6 +90,9 @@ glm::vec3 CoreObject::GetRotation()
 
 glm::mat4 CoreObject::GetModelMatrix()
 {
+	if (!changedModel)
+		return model;
+	changedModel = false;
 	model = glm::mat4(1.0f);
 	if (position != glm::vec3(0.0f, 0.0f, 0.0f))
 		model = glm::translate(model, position);
@@ -101,21 +123,23 @@ void CoreObject::SetShader()
 	shader->setMat4("view", camera->GetViewMatrix());
 }
 
-void CoreObject::Draw()
+void CoreObject::Draw(bool updateTextures, bool updateColors)
 {
+	// Set new position and rotation of the object
 	shader->setMat4("model", GetModelMatrix());
 
+	// If the object is not an imported model, just render the vertices
 	if (!isModel){
+		materials[0]->SetMaterial(*shader, false, true);
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+		return;
 	}
-	else
+	// If the object is an imported model, render all the meshes one by one
+	//shader->setBool("hasTexture", true);
+	for (int i = 0; i < meshes.size(); i++)
 	{
-		//shader->setBool("hasTexture", true);
-		for (int i = 0; i < meshes.size(); i++)
-		{
-			meshes[i].Draw(*shader, i == 0, false);
-		}
+		meshes[i].Draw(*shader, updateTextures, updateColors);
 	}
 }
 

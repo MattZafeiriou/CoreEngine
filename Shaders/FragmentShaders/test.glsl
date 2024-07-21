@@ -35,13 +35,12 @@ uniform bool hasTexture;
 uniform Material material;
 uniform vec3 viewPos;
 
-vec3 calculateDLight(vec3 normal, vec3 diffuseColor, vec3 specularColor) {
+vec3 calculateDLight(vec3 normal, vec3 diffuseColor, vec3 specularColor, vec3 viewDir) {
     vec3 lightDir = normalize(-dLight.direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 diffuse = dLight.diffuse * diff * diffuseColor;
 
-    vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, normal);
 
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
@@ -52,7 +51,7 @@ vec3 calculateDLight(vec3 normal, vec3 diffuseColor, vec3 specularColor) {
     return result;
 }
 
-vec3 calculatePLights(vec3 normal, vec3 diffuseColor, vec3 specularColor) {
+vec3 calculatePLights(vec3 normal, vec3 diffuseColor, vec3 specularColor, vec3 viewDir) {
 	vec3 result = vec3(0.0);
 	for(int i = 0; i < numPLights; i++) {
 		vec3 subtract = pLights[i].position - FragPos;
@@ -61,7 +60,6 @@ vec3 calculatePLights(vec3 normal, vec3 diffuseColor, vec3 specularColor) {
 		float diff = max(dot(normal, lightDir), 0.0);
 		vec3 diffuse = pLights[i].diffuse * diff * diffuseColor;
 
-		vec3 viewDir = normalize(viewPos - FragPos);
 		vec3 reflectDir = reflect(-lightDir, normal);
 
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
@@ -81,21 +79,18 @@ vec3 calculatePLights(vec3 normal, vec3 diffuseColor, vec3 specularColor) {
 
 void main()
 {
-	vec3 normal = normalize(Normal);
-	vec3 diffuse;
+	vec3 normal = Normal;
+	vec3 viewDir = normalize(viewPos - FragPos);
+	vec3 diffuse = material.diffuseColor;
 	if (hasTexture) {
 	    diffuse = vec3(texture(material.diffuse, TexCoords));
-	} else {
-	    diffuse = material.diffuseColor;
 	}
-	vec3 specular;
+	vec3 specular = material.specularColor;
 	if (hasTexture) {
 	    specular = vec3(texture(material.specular, TexCoords));
-	} else {
-	    specular = material.specularColor;
 	}
-    vec3 result = calculatePLights(normal, diffuse, specular);
-    result += calculateDLight(normal, diffuse, specular);
+    vec3 result = calculatePLights(normal, diffuse, specular, viewDir);
+    result += calculateDLight(normal, diffuse, specular, viewDir);
     // ambient light
     vec3 ambient = vec3(0.1) * diffuse;
 

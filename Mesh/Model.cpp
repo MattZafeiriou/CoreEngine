@@ -13,9 +13,12 @@ void Model::loadModel(string path, bool flip)
 	Assimp::Importer importer;
 	const aiScene* scene;
 	if (flip)
-		scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+		scene = importer.ReadFile(path, aiProcess_Triangulate
+			| aiProcess_JoinIdenticalVertices
+			| aiProcess_FlipUVs);
 	else
-		scene = importer.ReadFile(path, aiProcess_Triangulate);
+		scene = importer.ReadFile(path, aiProcess_Triangulate
+			| aiProcess_JoinIdenticalVertices);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
@@ -95,7 +98,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 			color = glm::vec3(color_.r, color_.g, color_.b);
 	}
 
-	return Mesh(vertices, indices, textures, color);
+	Material material(color, color * 0.5f, 32.0f, textures);
+
+	return Mesh(vertices, indices, material);
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)

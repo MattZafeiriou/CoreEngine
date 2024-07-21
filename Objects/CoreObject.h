@@ -7,12 +7,13 @@
 #include "../Shaders/Shader.h"
 #include "../Camera/Camera.h"
 #include "../Mesh/Mesh.h"
+#include "../Materials/Material.h"
 #include <vector>
 
 class CoreObject
 {
 public:
-	CoreObject(Camera* camera, GLuint VAO, Shader* shader);
+	CoreObject(Camera* camera, GLuint VAO, Shader* shader, Material* material);
 	CoreObject(Camera* camera, const char* path, Shader* shader, bool flip = true);
 	CoreObject();
 	~CoreObject();
@@ -22,7 +23,7 @@ public:
 	void SetScale(float scale);
 	void SetShader();
 	void SetCamera(Camera* camera);
-	void Draw();
+	void Draw(bool updateTextures = true, bool updateColors = false);
 	glm::vec3 GetPosition();
 	glm::vec3 GetRotation();
 	glm::vec3 GetScale();
@@ -35,6 +36,8 @@ private:
 	glm::mat4 model;
 	GLuint VAO;
 	bool isModel;
+	bool changedModel;
+	vector<Material*> materials;
 protected:
 	Shader* shader;
 	Camera* camera;

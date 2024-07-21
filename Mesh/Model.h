@@ -20,6 +20,7 @@ public:
     {
         loadModel(path, flip);
     }
+    Model() { }
     void Draw(Shader& shader);
     vector<Mesh> GetMeshes() { return meshes; }
 private:

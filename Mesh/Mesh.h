@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "../Shaders/Shader.h"
+#include "../Materials/Material.h"
 
 using namespace std;
 
@@ -14,27 +15,19 @@ struct Vertex {
     glm::vec2 TexCoords;
 };
 
-struct Texture {
-    unsigned int id;
-    string type;
-    string path;
-};
-
 class Mesh {
 public:
     // mesh data
     vector<Vertex>       vertices;
     vector<unsigned int> indices;
-    vector<Texture>      textures;
-    glm::vec3    color;
 
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures, glm::vec3 color);
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material);
     void Draw(Shader& shader, bool updateTextures = true, bool updateColor = true);
-    void SetColor(glm::vec3 color) { this->color = color; }
+    Material* GetMaterial() { return &material; }
     unsigned int GetVAO() { return VAO; }
 private:
     //  render data
     unsigned int VAO, VBO, EBO;
-
+    Material material;
     void setupMesh();
 };
