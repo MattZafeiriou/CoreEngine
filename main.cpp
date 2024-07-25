@@ -38,7 +38,7 @@ int main()
 {
 	Assimp::Importer importer;
 	setEnvironmentVariables(1); // Set DEBUG to 1
-	setEnvironmentVariable("CORE_VERSION", "0.1.1");
+	setEnvironmentVariable("CORE_VERSION", "0.1.2");
 
 	/*
 	 * Create a windowed mode window and its OpenGL context
@@ -113,17 +113,6 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	unsigned int VAO;
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
 	Shader shader("Shaders/VertexShaders/test.glsl", "Shaders/FragmentShaders/test.glsl");
 
 	unsigned int lightVAO;
@@ -151,10 +140,10 @@ int main()
 	shader.setFloat("material.shininess", 128.0f);
 
 	glm::vec3 lightSourcesPositions[] = {
-		glm::vec3(0.7f, 0.2f, 2.0f),
-		glm::vec3(2.3f, -3.3f, -4.0f),
-		glm::vec3(-4.0f, 2.0f, -12.0f),
-		glm::vec3(0.0f, 0.0f, -3.0f)
+		glm::vec3(10.0f, 5.0f, 10.0f),
+		glm::vec3(10.0f, 5.0f, -10.0f),
+		glm::vec3(-10.0f, 5.0f, -10.0f),
+		glm::vec3(-10.0f, 5.0f, 10.0f)
 	};
 
 	Light lightSources[4];
@@ -171,9 +160,8 @@ int main()
 		shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].ambient")).c_str(), lightSources[i].GetColor() * glm::vec3(0.2));
 	}
 
-	//CoreObject bruh(&camera, "Resources/Models/oof/untitled.obj", &shader, 0);
-	//bruh.SetScale(0.3f);
-	//bruh.SetPosition(0.0f, -2.0f, 0.0f);
+	CoreObject bruh(&camera, "Resources/Models/oof/untitled.obj", &shader, 0);
+	bruh.SetPosition(0.0f, -2.0f, 0.0f);
 	Cube cube(&camera, &shader, glm::vec3(1.0f, 0.5f, 0.31f));
 
 	Plane floor(&camera, &shader);
@@ -189,15 +177,11 @@ int main()
 		// input
 		processInput(window);
 
-		// rendering commands here
+		// clear the screen
 		glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		const float time = glfwGetTime();
-		float x = sin(time);
-		float y = 2.0f;
-		float z = cos(time);
-		float radius = 10.0f;
+		// renderings
 		// light source
 		lightSources[0].SetShader();
 
@@ -213,22 +197,23 @@ int main()
 		floor.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
 		floor.Draw();
 
-		shader.setBool("hasTexture", false);
 		cube.SetPosition(0.0f, -2.0f, 0.0f);
-		cube.SetColor(glm::vec3(sin(time) / 2 + 0.5f, cos(time) / 2 + 0.5f, sin(time) / 2 + 0.5f));
-		cube.Draw();
+		cube.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
+		cube.Draw(true);
 		int max = 20 / 2;
+		camera.extractFrustumPlanes();
 		for (int i = -max; i < max; i++)
 		{
 			for (int j = -max; j < max; j++)
 			{
-				cube.SetPosition(i * 2.0f, 1.0f, j * 2.0f);
-				cube.Draw(false);
+				shader.setBool("hasTexture", true);
+				bruh.SetPosition(i * 2.0f, 1.0f, j * 2.0f);
+				bruh.Draw();
 			}
 		}
 
 		// check and call events and swap the buffers
-		camera.Update();
+		camera.Update(); // update camera and listen events (should be called in the end)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}

@@ -29,15 +29,20 @@ public:
 	glm::vec3 GetScale();
 	glm::mat4 GetModelMatrix();
 	glm::mat4 GetProjectionMatrix();
+	glm::vec3 GetMinValues();
+	glm::vec3 GetMaxValues();
 private:
 	glm::vec3 position;
 	glm::vec3 rotation;
 	glm::vec3 scale;
 	glm::mat4 model;
+	glm::vec3 minValues;
+	glm::vec3 maxValues;
 	GLuint VAO;
 	bool isModel;
 	bool changedModel;
 	vector<Material*> materials;
+	std::pair<glm::vec3, glm::vec3> calculateAABB(glm::vec3 minValues, glm::vec3 maxValues, glm::mat4 modelMatrix);
 protected:
 	Shader* shader;
 	Camera* camera;

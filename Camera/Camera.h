@@ -1,6 +1,14 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <array>
+
+struct CamPlane {
+	glm::vec3 normal;
+	float distance;
+};
 
 class Camera
 {
@@ -23,7 +31,10 @@ public:
 	int GetWidth();
 	int GetHeight();
 	bool ShouldUpdate();
+	bool IsInFrustum(glm::vec3 minValues, glm::vec3 maxValues);
+	std::array<CamPlane, 6> extractFrustumPlanes();
 private:
+	std::array<CamPlane, 6> frustumPlanes;
 	glm::vec3 cameraPos;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraUp;
@@ -32,8 +43,8 @@ private:
 	float lastX;
 	float lastY;
 	float fov;
-	float lastW;
-	float lastH;
+	int lastW;
+	int lastH;
 	float lastClosePlane;
 	float lastFarPlane;
 	float lastFOV;

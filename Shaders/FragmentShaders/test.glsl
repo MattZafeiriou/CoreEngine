@@ -92,7 +92,7 @@ void main()
     vec3 result = calculatePLights(normal, diffuse, specular, viewDir);
     result += calculateDLight(normal, diffuse, specular, viewDir);
     // ambient light
-    vec3 ambient = vec3(0.1) * diffuse;
+    vec3 ambient = vec3(0.05) * diffuse;
 
     result += ambient;
     FragColor = vec4(result, 1.0);

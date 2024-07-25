@@ -1,12 +1,12 @@
 #include "Mesh.h"
 #include <glad/glad.h>
 #include <iostream>
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material)
+Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material, glm::vec3 minValues, glm::vec3 maxValues)
 {
 	this->vertices = vertices;
 	this->indices = indices;
 	this->material = material;
-
+    SetMinMaxValues(minValues, maxValues);
     setupMesh();
 }
 
@@ -44,4 +44,10 @@ void Mesh::Draw(Shader& shader, bool updateTextures, bool updateColor)
     // draw mesh
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+}
+
+void Mesh::SetMinMaxValues(glm::vec3 minValues, glm::vec3 maxValues)
+{
+	this->minValues = minValues;
+	this->maxValues = maxValues;
 }

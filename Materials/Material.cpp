@@ -65,7 +65,6 @@ void Material::SetMaterial(Shader& shader, bool updateTextures, bool updateColor
 {
 	if (updateColor)
 	{
-		shader.use();
 		shader.setVec3("material.diffuseColor", diffuse);
 		shader.setVec3("material.specularColor", specular);
 		shader.setFloat("material.shininess", shininess);

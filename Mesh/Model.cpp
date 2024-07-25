@@ -49,6 +49,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	vector<unsigned int> indices;
 	vector<Texture> textures;
 	glm::vec3 color;
+	float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -58,6 +59,19 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		vector.y = mesh->mVertices[i].y;
 		vector.z = mesh->mVertices[i].z;
 		vertex.Position = vector;
+
+		if (vector.x < minX)
+			minX = vector.x;
+		if (vector.y < minY)
+			minY = vector.y;
+		if (vector.z < minZ)
+			minZ = vector.z;
+		if (vector.x > maxX)
+			maxX = vector.x;
+		if (vector.y > maxY)
+			maxY = vector.y;
+		if (vector.z > maxZ)
+			maxZ = vector.z;
 
 		vector.x = mesh->mNormals[i].x;
 		vector.y = mesh->mNormals[i].y;
@@ -100,7 +114,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
 	Material material(color, color * 0.5f, 32.0f, textures);
 
-	return Mesh(vertices, indices, material);
+	return Mesh(vertices, indices, material, glm::vec3(minX, minY, minZ), glm::vec3(maxX, maxY, maxZ));
 }
 
 vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)

@@ -1,5 +1,6 @@
 #include "CoreObject.h"
 #include "../Mesh/Model.h"
+#include "../Objects/Cube/Cube.h"
 
 CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader, Material* material)
 {
@@ -30,6 +31,18 @@ CoreObject::CoreObject(Camera* camera, const char* path, Shader* shader, bool fl
 	for (int i = 0; i < meshes.size(); i++)
 	{
 		materials.push_back(meshes[i].GetMaterial());
+		if (meshes[i].GetMinValues().x < minValues.x)
+			minValues.x = meshes[i].GetMinValues().x;
+		if (meshes[i].GetMinValues().y < minValues.y)
+			minValues.y = meshes[i].GetMinValues().y;
+		if (meshes[i].GetMinValues().z < minValues.z)
+			minValues.z = meshes[i].GetMinValues().z;
+		if (meshes[i].GetMaxValues().x > maxValues.x)
+			maxValues.x = meshes[i].GetMaxValues().x;
+		if (meshes[i].GetMaxValues().y > maxValues.y)
+			maxValues.y = meshes[i].GetMaxValues().y;
+		if (meshes[i].GetMaxValues().z > maxValues.z)
+			maxValues.z = meshes[i].GetMaxValues().z;
 	}
 }
 
@@ -39,6 +52,16 @@ CoreObject::CoreObject()
 
 CoreObject::~CoreObject()
 {
+}
+
+glm::vec3 CoreObject::GetMinValues()
+{
+	return minValues;
+}
+
+glm::vec3 CoreObject::GetMaxValues()
+{
+	return maxValues;
 }
 
 void CoreObject::SetPosition(float x, float y, float z)
@@ -123,10 +146,39 @@ void CoreObject::SetShader()
 	shader->setMat4("view", camera->GetViewMatrix());
 }
 
+std::pair<glm::vec3, glm::vec3> CoreObject::calculateAABB(glm::vec3 minValues, glm::vec3 maxValues, glm::mat4 modelMatrix)
+{
+	// Define the 8 corners of the AABB
+	glm::vec3 corners[8] = {
+		minValues,
+		glm::vec3(minValues.x, minValues.y, maxValues.z),
+		glm::vec3(minValues.x, maxValues.y, minValues.z),
+		glm::vec3(minValues.x, maxValues.y, maxValues.z),
+		glm::vec3(maxValues.x, minValues.y, minValues.z),
+		glm::vec3(maxValues.x, minValues.y, maxValues.z),
+		glm::vec3(maxValues.x, maxValues.y, minValues.z),
+		maxValues
+	};
+
+	// Transform each corner
+	glm::vec3 transformedMin(FLT_MAX);
+	glm::vec3 transformedMax(-FLT_MAX);
+
+	for (int i = 0; i < 8; ++i)
+	{
+		glm::vec4 transformedCorner = modelMatrix * glm::vec4(corners[i], 1.0f);
+		transformedMin = glm::min(transformedMin, glm::vec3(transformedCorner));
+		transformedMax = glm::max(transformedMax, glm::vec3(transformedCorner));
+	}
+
+	return std::make_pair(transformedMin, transformedMax);
+}
+
 void CoreObject::Draw(bool updateTextures, bool updateColors)
 {
 	// Set new position and rotation of the object
-	shader->setMat4("model", GetModelMatrix());
+	glm::mat4 model = GetModelMatrix();
+	shader->setMat4("model", model);
 
 	// If the object is not an imported model, just render the vertices
 	if (!isModel){
@@ -136,6 +188,16 @@ void CoreObject::Draw(bool updateTextures, bool updateColors)
 		return;
 	}
 	// If the object is an imported model, render all the meshes one by one
+	// Check if the object is in the camera's frustum
+	std::pair<glm::vec3, glm::vec3> transformedBounds = calculateAABB(minValues, maxValues, model);
+	glm::vec3 transformedMin = transformedBounds.first;
+	glm::vec3 transformedMax = transformedBounds.second;
+
+	bool shouldRender = camera->IsInFrustum(transformedMin, transformedMax);
+	if (!shouldRender)
+		return;
+
+
 	//shader->setBool("hasTexture", true);
 	for (int i = 0; i < meshes.size(); i++)
 	{
