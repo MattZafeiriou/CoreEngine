@@ -1,6 +1,25 @@
 #include "Model.h"
+#include "../Utils/EnvironmentVariablesUtils.cpp"
 
 vector<Texture> textures_loaded;
+
+Model::Model(const char* path, bool flip)
+{
+	bool debug = std::strcmp(getEnvironmentVariable("CORE_DEBUG"), "1");
+	if (debug == 0)
+	{
+		cout << "Loading model: " << path << endl;
+		auto start = std::chrono::high_resolution_clock::now();
+		loadModel(path, flip);
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> elapsed = end - start;
+		cout << "Model loaded in " << elapsed.count() << " seconds" << endl;
+	}
+	else
+	{
+		loadModel(path, flip);
+	}
+}
 
 void Model::Draw(Shader& shader)
 {

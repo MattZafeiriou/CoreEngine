@@ -10,16 +10,14 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include "../Utils/stb_image.h"
+#include <chrono>
 
 using namespace std;
 
 class Model
 {
 public:
-    Model(const char* path, bool flip = true)
-    {
-        loadModel(path, flip);
-    }
+    Model(const char* path, bool flip = true);
     Model() { }
     void Draw(Shader& shader);
     vector<Mesh> GetMeshes() { return meshes; }

@@ -10,21 +10,21 @@ struct Material {
     sampler2D diffuse;
     sampler2D specular;
     float shininess;
-	vec3 diffuseColor;
+	vec4 diffuseColor;
 	vec3 specularColor;
 };
 
 struct Light {
     vec3 position;
     vec3 ambient;
-    vec3 diffuse;
+    vec4 diffuse;
     vec3 specular;
 };
 
 struct DirLight {
 	vec3 direction;
 	vec3 ambient;
-	vec3 diffuse;
+	vec4 diffuse;
 	vec3 specular;
 };
 
@@ -35,30 +35,30 @@ uniform bool hasTexture;
 uniform Material material;
 uniform vec3 viewPos;
 
-vec3 calculateDLight(vec3 normal, vec3 diffuseColor, vec3 specularColor, vec3 viewDir) {
+vec4 calculateDLight(vec3 normal, vec4 diffuseColor, vec3 specularColor, vec3 viewDir) {
     vec3 lightDir = normalize(-dLight.direction);
 
     float diff = max(dot(normal, lightDir), 0.0);
-    vec3 diffuse = dLight.diffuse * diff * diffuseColor;
+    vec4 diffuse = dLight.diffuse * diff * diffuseColor;
 
     vec3 reflectDir = reflect(-lightDir, normal);
 
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     vec3 specular = dLight.specular * spec * specularColor;
 
-    vec3 result = (diffuse + specular);
+    vec4 result = (diffuse + vec4(specular, diffuse.a));
 
     return result;
 }
 
-vec3 calculatePLights(vec3 normal, vec3 diffuseColor, vec3 specularColor, vec3 viewDir) {
-	vec3 result = vec3(0.0);
+vec4 calculatePLights(vec3 normal, vec4 diffuseColor, vec3 specularColor, vec3 viewDir) {
+	vec4 result = vec4(0.0);
 	for(int i = 0; i < numPLights; i++) {
 		vec3 subtract = pLights[i].position - FragPos;
 		vec3 lightDir = normalize(subtract);
 
 		float diff = max(dot(normal, lightDir), 0.0);
-		vec3 diffuse = pLights[i].diffuse * diff * diffuseColor;
+		vec4 diffuse = pLights[i].diffuse * diff * diffuseColor;
 
 		vec3 reflectDir = reflect(-lightDir, normal);
 
@@ -71,9 +71,8 @@ vec3 calculatePLights(vec3 normal, vec3 diffuseColor, vec3 specularColor, vec3 v
 		const float c3 = 0.01;
 		float attenuation = 1.0 / (c1 + c2 * distance + c3 * distance * distance);
 
-		result += (diffuse + specular) * attenuation;
+		result += (diffuse + vec4(specular, 1.0)) * attenuation;
 	}
-
 	return result;
 }
 
@@ -81,19 +80,23 @@ void main()
 {
 	vec3 normal = Normal;
 	vec3 viewDir = normalize(viewPos - FragPos);
-	vec3 diffuse = material.diffuseColor;
+	vec4 diffuse = material.diffuseColor;
 	if (hasTexture) {
-	    diffuse = vec3(texture(material.diffuse, TexCoords));
+	    diffuse = texture(material.diffuse, TexCoords);
+	}
+	if (diffuse.a < 0.01) {
+		discard;
 	}
 	vec3 specular = material.specularColor;
 	if (hasTexture) {
 	    specular = vec3(texture(material.specular, TexCoords));
 	}
-    vec3 result = calculatePLights(normal, diffuse, specular, viewDir);
+    vec4 result = calculatePLights(normal, diffuse, specular, viewDir);
     result += calculateDLight(normal, diffuse, specular, viewDir);
     // ambient light
-    vec3 ambient = vec3(0.05) * diffuse;
+    vec4 ambient = vec4(0.05) * diffuse;
 
     result += ambient;
-    FragColor = vec4(result, 1.0);
+	result.a = diffuse.a;
+    FragColor = result;
 }

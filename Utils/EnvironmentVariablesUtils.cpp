@@ -17,9 +17,22 @@ static const char* getEnvironmentVariable(const char* name)
 	return envValue;
 }
 
-static void setEnvironmentVariables(int DEBUG=0)
+/*
+ This function sets the environment variables for the engine
+ arguments:
+     version - the version of the engine, e.g. "0.1.2"
+     DEBUG - 1 if the engine is in debug mode, 0 otherwise
+ */
+static void setEnvironmentVariables(const char* version, int DEBUG=0)
 {
     setEnvironmentVariable("CORE_NAME", "CoreEngine");
-    setEnvironmentVariable("CORE_VERSION", "0.1.2");
+    setEnvironmentVariable("CORE_VERSION", version);
     setEnvironmentVariable("CORE_DEBUG", DEBUG ? "1" : "0");
+    if (DEBUG)
+    {
+        std::cout << "Setting environment variables:" << std::endl;
+        std::cout << "CORE_NAME=" << getEnvironmentVariable("CORE_NAME") << std::endl;
+        std::cout << "CORE_VERSION=" << getEnvironmentVariable("CORE_VERSION") << std::endl;
+        std::cout << "CORE_DEBUG=" << getEnvironmentVariable("CORE_DEBUG") << std::endl;
+    }
 }
