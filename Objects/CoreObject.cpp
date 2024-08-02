@@ -54,6 +54,11 @@ CoreObject::~CoreObject()
 {
 }
 
+vector<Material*> CoreObject::GetMaterials()
+{
+	return materials;
+}
+
 glm::vec3 CoreObject::GetMinValues()
 {
 	return minValues;
@@ -94,6 +99,11 @@ void CoreObject::SetRotation(float x, float y, float z)
 		return;
 	changedModel = true;
 	rotation = glm::vec3(x, y, z);
+}
+
+void CoreObject::SetAlwaysPointToCamera(bool alwaysPointToCamera)
+{
+	this->alwaysPointToCamera = alwaysPointToCamera;
 }
 
 glm::vec3 CoreObject::GetPosition()
@@ -177,6 +187,23 @@ std::pair<glm::vec3, glm::vec3> CoreObject::calculateAABB(glm::vec3 minValues, g
 void CoreObject::Draw(bool updateTextures, bool updateColors)
 {
 	// Set new position and rotation of the object
+	if (alwaysPointToCamera)
+	{
+		glm::vec3 cameraPos = camera->GetPosition();
+		glm::vec3 objectPos = GetPosition();
+
+		// Calculate direction vector from object to camera
+		glm::vec3 direction = glm::normalize(cameraPos - objectPos);
+		//direction.x = abs(direction.x);
+
+		// Calculate angles
+		float pitch = 0.0f;//glfwGetTime() * 50.0f;
+		float yaw = glm::degrees(atan2(-direction.z, direction.x));
+		float roll = glm::degrees(asin(direction.y));
+
+		// Apply the rotation to the object
+		SetRotation(pitch, yaw, roll);
+	}
 	glm::mat4 model = GetModelMatrix();
 	shader->setMat4("model", model);
 
@@ -196,7 +223,6 @@ void CoreObject::Draw(bool updateTextures, bool updateColors)
 	bool shouldRender = camera->IsInFrustum(transformedMin, transformedMax);
 	if (!shouldRender)
 		return;
-
 
 	//shader->setBool("hasTexture", true);
 	for (int i = 0; i < meshes.size(); i++)

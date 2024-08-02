@@ -24,6 +24,8 @@ public:
 	void SetShader();
 	void SetCamera(Camera* camera);
 	void Draw(bool updateTextures = true, bool updateColors = false);
+	void SetAlwaysPointToCamera(bool alwaysPointToCamera);
+	vector<Material*> GetMaterials();
 	glm::vec3 GetPosition();
 	glm::vec3 GetRotation();
 	glm::vec3 GetScale();
@@ -39,6 +41,7 @@ private:
 	glm::vec3 minValues;
 	glm::vec3 maxValues;
 	GLuint VAO;
+	bool alwaysPointToCamera = 0;
 	bool isModel;
 	bool changedModel;
 	vector<Material*> materials;

@@ -95,6 +95,7 @@ int main()
 	/*
 	 * Render loop
 	*/
+	bruh.SetAlwaysPointToCamera(1);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	while (!glfwWindowShouldClose(window))
@@ -103,7 +104,7 @@ int main()
 		processInput(window);
 
 		// clear the screen
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		camera.extractFrustumPlanes();
@@ -118,6 +119,13 @@ int main()
 		}
 		// cube
 		floor.SetShader();
+		for (int i = 0; i < 4; i++)
+		{
+			shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].position")).c_str(), lightSources[i].GetPosition());
+			shader.setVec4((std::string("pLights[") + std::to_string(i) + std::string("].diffuse")).c_str(), glm::vec4(lightSources[i].GetColor(), 1.0f));
+			shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].specular")).c_str(), lightSources[i].GetColor() * glm::vec3(0.5));
+			shader.setVec3((std::string("pLights[") + std::to_string(i) + std::string("].ambient")).c_str(), lightSources[i].GetColor() * glm::vec3(0.2));
+		}
 		shader.setVec3("viewPos", camera.GetPosition());
 		shader.setBool("hasTexture", false);
 		floor.SetColor(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -126,9 +134,9 @@ int main()
 		cube.SetPosition(0.0f, -2.0f, 0.0f);
 		cube.SetColor(glm::vec3(1.0f, 0.0f, 0.0f));
 		cube.Draw(true);
-		int max = 10 / 2;
+		int max = 1;
 
-		shader.setBool("hasTexture", 1);
+		shader.setBool("hasTexture", true);
 		/*
 		Render in order based on the distance from the camera
 		*/
@@ -136,8 +144,8 @@ int main()
 		{
 			for (int j = -max; j < max; j++)
 			{
-				bruh.SetPosition(i * 2.0f, 1.0f, j * 2.0f);
-				bruh.Draw(1,1);
+				bruh.SetPosition(i * 2.0f, 2.0f, j * 2.0f);
+				bruh.Draw(1,0);
 			}
 		}
 		// check and call events and swap the buffers
