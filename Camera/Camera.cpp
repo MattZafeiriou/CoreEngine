@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-Camera::Camera(GLFWwindow* window)
+Camera::Camera(GLFWwindow* window, bool hideCursor)
 {
 	this->window = window;
 
@@ -31,7 +31,8 @@ Camera::Camera(GLFWwindow* window)
 
 	shouldUpdate = true;
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	if (hideCursor)
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -163,8 +164,6 @@ bool Camera::ShouldUpdate()
 {
 	return shouldUpdate;
 }
-
-#include <iostream>
 
 std::array<CamPlane, 6> Camera::extractFrustumPlanes()
 {

@@ -29,8 +29,8 @@ struct DirLight {
 };
 
 uniform DirLight dLight;
-const int numPLights = 4;
-uniform Light pLights[numPLights];
+uniform Light pLights[10]; // needs optimisation
+uniform int lightCount;
 uniform bool hasTexture;
 uniform Material material;
 uniform vec3 viewPos;
@@ -53,7 +53,7 @@ vec4 calculateDLight(vec3 normal, vec4 diffuseColor, vec3 specularColor, vec3 vi
 
 vec4 calculatePLights(vec3 normal, vec4 diffuseColor, vec3 specularColor, vec3 viewDir) {
 	vec4 result = vec4(0.0);
-	for(int i = 0; i < numPLights; i++) {
+	for(int i = 0; i < lightCount; i++) {
 		vec3 subtract = pLights[i].position - FragPos;
 		vec3 lightDir = normalize(subtract);
 

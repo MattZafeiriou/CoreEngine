@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-Material::Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, std::vector<Texture> textures)
+Material::Material(glm::vec4 diffuse, glm::vec3 specular, float shininess, std::vector<Texture> textures)
 {
 	this->diffuse = diffuse;
 	this->specular = specular;
@@ -12,7 +12,7 @@ Material::Material(glm::vec3 diffuse, glm::vec3 specular, float shininess, std::
 
 Material::Material()
 {
-	this->diffuse = glm::vec3(1.0f);
+	this->diffuse = glm::vec4(1.0f);
 	this->specular = glm::vec3(1.0f);
 	this->shininess = 32.0f;
 }
@@ -26,7 +26,7 @@ void Material::SetTextures(std::vector<Texture> textures)
 	this->textures = textures;
 }
 
-void Material::SetDiffuse(glm::vec3 diffuse)
+void Material::SetDiffuse(glm::vec4 diffuse)
 {
 	this->diffuse = diffuse;
 }
@@ -65,7 +65,7 @@ void Material::SetMaterial(Shader& shader, bool updateTextures, bool updateColor
 {
 	if (updateColor)
 	{
-		shader.setVec4("material.diffuseColor", glm::vec4(diffuse, 1.0f));
+		shader.setVec4("material.diffuseColor", diffuse);
 		shader.setVec3("material.specularColor", specular);
 		shader.setFloat("material.shininess", shininess);
 	}

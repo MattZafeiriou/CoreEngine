@@ -13,7 +13,7 @@ struct CamPlane {
 class Camera
 {
 public:
-	Camera(GLFWwindow* window);
+	Camera(GLFWwindow* window, bool hideCursor = true);
 	void Update();
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);

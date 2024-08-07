@@ -1,6 +1,6 @@
 #include "Plane.h"
 
-Plane::Plane(Camera* camera, Shader* shader, glm::vec3 color) : CoreObject(camera, "Resources/Models/Default/plane.obj", shader)
+Plane::Plane(Camera* camera, Shader* shader, glm::vec4 color) : CoreObject(camera, "Resources/Models/Default/plane.obj", shader)
 {
 	SetColor(color);
 }
@@ -9,12 +9,12 @@ Plane::~Plane()
 {
 }
 
-glm::vec3 Plane::GetColor()
+glm::vec4 Plane::GetColor()
 {
 	return color;
 }
 
-void Plane::SetColor(glm::vec3 color)
+void Plane::SetColor(glm::vec4 color)
 {
 	this->color = color;
 	for (unsigned int i = 0; i < meshes.size(); i++)

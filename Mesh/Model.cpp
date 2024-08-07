@@ -5,6 +5,7 @@ vector<Texture> textures_loaded;
 
 Model::Model(const char* path, bool flip)
 {
+	this->path = path;
 	bool debug = std::strcmp(getEnvironmentVariable("CORE_DEBUG"), "1");
 	if (debug == 0)
 	{
@@ -67,7 +68,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 	vector<Vertex> vertices;
 	vector<unsigned int> indices;
 	vector<Texture> textures;
-	glm::vec3 color;
+	glm::vec4 color;
 	float minX = 0, minY = 0, minZ = 0, maxX = 0, maxY = 0, maxZ = 0;
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -126,12 +127,12 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 		vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-		aiColor3D color_(0.f, 0.f, 0.f);
+		aiColor4D color_(0.f, 0.f, 0.f, 1.f);
 		if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color_))
-			color = glm::vec3(color_.r, color_.g, color_.b);
+			color = glm::vec4(color_.r, color_.g, color_.b, color_.a);
 	}
 
-	Material material(color, color * 0.5f, 32.0f, textures);
+	Material material(color, glm::vec3(color) * 0.5f, 32.0f, textures);
 
 	return Mesh(vertices, indices, material, glm::vec3(minX, minY, minZ), glm::vec3(maxX, maxY, maxZ));
 }

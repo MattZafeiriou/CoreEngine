@@ -20,6 +20,7 @@ public:
     Model(const char* path, bool flip = true);
     Model() { }
     void Draw(Shader& shader);
+    const char* GetPath() { return path; }
     vector<Mesh> GetMeshes() { return meshes; }
 private:
     // model data
@@ -30,7 +31,7 @@ private:
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         string typeName);
-
+    const char* path;
     unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false)
     {
         string filename = string(path);

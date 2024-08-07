@@ -8,6 +8,7 @@
 #include "../Camera/Camera.h"
 #include "../Mesh/Mesh.h"
 #include "../Materials/Material.h"
+#include "../Mesh/Model.h"
 #include <vector>
 
 class CoreObject
@@ -25,6 +26,7 @@ public:
 	void SetCamera(Camera* camera);
 	void Draw(bool updateTextures = true, bool updateColors = false);
 	void SetAlwaysPointToCamera(bool alwaysPointToCamera);
+	Shader* GetShader();
 	vector<Material*> GetMaterials();
 	glm::vec3 GetPosition();
 	glm::vec3 GetRotation();
@@ -44,6 +46,7 @@ private:
 	bool alwaysPointToCamera = 0;
 	bool isModel;
 	bool changedModel;
+	bool hasTextures;
 	vector<Material*> materials;
 	std::pair<glm::vec3, glm::vec3> calculateAABB(glm::vec3 minValues, glm::vec3 maxValues, glm::mat4 modelMatrix);
 protected:

@@ -1,6 +1,6 @@
 #include "Light.h"
 
-Light::Light(Camera* camera, GLuint VAO, Shader* shader, glm::vec3 color, float intensity) : CoreObject(camera, VAO, shader, new Material(color * intensity, color * 0.5f * intensity, 32.0f))
+Light::Light(Camera* camera, GLuint VAO, Shader* shader, glm::vec3 color, float intensity) : CoreObject(camera, VAO, shader, new Material(glm::vec4(color, 1.0) * intensity, color * 0.5f * intensity, 32.0f))
 {
 	this->color = color;
 	this->intensity = intensity;

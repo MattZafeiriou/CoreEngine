@@ -13,6 +13,7 @@ CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader, Material* mat
 	this->camera = camera;
 	this->isModel = false;
 	this->changedModel = true;
+	this->hasTextures = material->GetTextures().size() > 0;
 	materials.push_back(material);
 }
 
@@ -28,8 +29,11 @@ CoreObject::CoreObject(Camera* camera, const char* path, Shader* shader, bool fl
 	Model model(path, flip);
 	meshes = model.GetMeshes();
 	this->changedModel = true;
+	this->hasTextures = false;
 	for (int i = 0; i < meshes.size(); i++)
 	{
+		if (meshes[i].GetMaterial()->GetTextures().size() > 0)
+			hasTextures = true;
 		materials.push_back(meshes[i].GetMaterial());
 		if (meshes[i].GetMinValues().x < minValues.x)
 			minValues.x = meshes[i].GetMinValues().x;
@@ -67,6 +71,11 @@ glm::vec3 CoreObject::GetMinValues()
 glm::vec3 CoreObject::GetMaxValues()
 {
 	return maxValues;
+}
+
+Shader* CoreObject::GetShader()
+{
+	return shader;
 }
 
 void CoreObject::SetPosition(float x, float y, float z)
@@ -206,14 +215,8 @@ void CoreObject::Draw(bool updateTextures, bool updateColors)
 	}
 	glm::mat4 model = GetModelMatrix();
 	shader->setMat4("model", model);
+	shader->setBool("hasTexture", hasTextures);
 
-	// If the object is not an imported model, just render the vertices
-	if (!isModel){
-		materials[0]->SetMaterial(*shader, false, true);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		return;
-	}
 	// If the object is an imported model, render all the meshes one by one
 	// Check if the object is in the camera's frustum
 	std::pair<glm::vec3, glm::vec3> transformedBounds = calculateAABB(minValues, maxValues, model);
@@ -224,10 +227,17 @@ void CoreObject::Draw(bool updateTextures, bool updateColors)
 	if (!shouldRender)
 		return;
 
-	//shader->setBool("hasTexture", true);
+	// If the object is not an imported model, just render the vertices
+	if (!isModel) {
+		materials[0]->SetMaterial(*shader, false, true);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		return;
+	}
+
 	for (int i = 0; i < meshes.size(); i++)
 	{
-		meshes[i].Draw(*shader, updateTextures, updateColors);
+		meshes[i].Draw(*shader, i==0, i==0);
 	}
 }
 
