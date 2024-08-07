@@ -28,11 +28,20 @@ public:
 protected:
 	void processInput(GLFWwindow* window);
 private:
+	void CreateFramebuffer();
+	void CreateQuadVAO();
+	void Render();
 	GLFWwindow* window;
 	Camera* camera;
 	Shader* defaultShader;
 	Shader* lightShader;
+	Shader* framebufferShader;
 	std::vector<Scene*> scenes;
+	unsigned int framebuffer;
+	unsigned int textureColorbuffer;
+	unsigned int quadVAO;
+	unsigned int quadVBO;
+	unsigned int rbo;
 	int currentSceneIndex;
 	bool running;
 };

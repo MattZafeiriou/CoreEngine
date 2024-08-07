@@ -84,8 +84,7 @@ void Camera::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	if (fov > 45.0f)
 		fov = 45.0f;
 }
-
-void Camera::Update()
+void Camera::Update(int textureColorbuffer, int rbo)
 {
 	shouldUpdate = false;
 	int width, height;
@@ -93,6 +92,14 @@ void Camera::Update()
 
 	if (width != lastW || height != lastH || closePlane != lastClosePlane || farPlane != lastFarPlane || fov != lastFOV)
 	{
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
 		glm::ortho(0.0f, (float)width, 0.0f, (float)height, closePlane, farPlane);
 		lastClosePlane = closePlane;
 		lastFarPlane = farPlane;

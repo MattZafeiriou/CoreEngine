@@ -3,24 +3,15 @@
 #include <iostream>
 #include <cstdlib>
 #include "../Window/CoreWindow.h"
-#include "../Utils/EnvironmentVariablesUtils.cpp"
-#include "../Utils/TextureLoader.cpp"
 #include "../Shaders/Shader.h"
 #include "../Camera/Camera.h"
 #include "../Objects/CoreObject.h"
 #include "../Objects/LightSources/Light.h"
 #include <string>
-#include "../Mesh/Model.h"
 #include "../Objects/Plane/Plane.h"
 #include "../Objects/Cube/Cube.h"
 #include "../CoreEngine/CoreEngine.h"
 #include "../CoreEngine/Scenes/Scene.h"
-
-static void processInput(GLFWwindow* window)
-{
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-}
 
 int main()
 {
@@ -60,17 +51,18 @@ int main()
 
 	CoreObject bruh(camera, "Resources/Models/backpack/backpack.obj", &shader, 0);
 	bruh.SetPosition(0.0f, -2.0f, 0.0f);
+
 	Cube cube(camera, &shader, glm::vec4(1.0f, 0.5f, 0.31f, 1.0f));
 
 	Plane floor(camera, &shader);
 	floor.SetColor(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	floor.SetScale(50.0f);
 
-	CoreObject test(camera, "Resources/Models/backpack/backpack.obj", &shader, 0);
-	test.SetPosition(2.0f, 0.0f, 0.0f);
+	//CoreObject test(camera, "Resources/Models/backpack/backpack.obj", &shader, 0);
+	//test.SetPosition(2.0f, 0.0f, 0.0f);
 
-	//scene->AddObject(&floor);
-	//scene->AddObject(&cube);
+	scene->AddObject(&floor);
+	scene->AddObject(&cube);
 	scene->AddObject(&bruh);
 	//scene->AddObject(&test);
 	/*

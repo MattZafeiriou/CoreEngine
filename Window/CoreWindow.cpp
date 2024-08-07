@@ -29,8 +29,8 @@ CoreWindow::CoreWindow()
 
 GLFWwindow* CoreWindow::createWindow(const char* title)
 {
-    int width = 1920;
-    int height = 1080;
+    int width = 800;
+    int height = 600;
 
     GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)
@@ -40,7 +40,7 @@ GLFWwindow* CoreWindow::createWindow(const char* title)
         return NULL;
     }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0); // vsync on
+    glfwSwapInterval(0); // vsync
     glViewport(0, 0, width, height);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 

@@ -46,7 +46,7 @@ void CoreEngine::SetLightShader(Shader* shader)
 
 void CoreEngine::Init()
 {
-	setEnvironmentVariables("0.1.3", 1); // Set DEBUG to 1
+	setEnvironmentVariables("0.1.4", 1); // Set DEBUG to 1
 
 	/*
 	 * Create a windowed mode window and its OpenGL context
@@ -68,6 +68,11 @@ void CoreEngine::Init()
 		std::cout << "Failed to initialize GLAD" << std::endl;
 	}
 
+	CreateQuadVAO();
+
+	framebufferShader = new Shader("Shaders/VertexShaders/framebuffer.glsl", "Shaders/FragmentShaders/framebuffer.glsl");
+
+	CreateFramebuffer();
 	// Set the clear color
 	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 
@@ -130,18 +135,11 @@ void CoreEngine::Run()
 	{
 		// input
 		processInput(window);
-
-		// clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 		camera->extractFrustumPlanes();
 
-		// Render the current scene
-		defaultShader->use();
-		defaultShader->setVec3("viewPos", camera->GetPosition());
-		scenes[currentSceneIndex]->Render();
+		Render();
 
-		camera->Update();
+		camera->Update(textureColorbuffer, rbo);
 
 		// Swap the front and back buffers
 		glfwSwapBuffers(window);
@@ -150,6 +148,81 @@ void CoreEngine::Run()
 		glfwPollEvents();
 	}
 	glfwTerminate();
+}
+
+void CoreEngine::Render()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
+	glEnable(GL_DEPTH_TEST);
+	defaultShader->use();
+	defaultShader->setVec3("viewPos", camera->GetPosition());
+ 	scenes[currentSceneIndex]->Render();
+
+	// second pass
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+	// clear all relevant buffers
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	framebufferShader->use();
+	glBindVertexArray(quadVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void CoreEngine::CreateQuadVAO()
+{
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+}
+
+void CoreEngine::CreateFramebuffer()
+{
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// generate texture
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	// attach it to currently bound framebuffer object
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 }
 
 void CoreEngine::Shutdown()

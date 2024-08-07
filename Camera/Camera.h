@@ -1,4 +1,5 @@
 #pragma once
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -14,7 +15,7 @@ class Camera
 {
 public:
 	Camera(GLFWwindow* window, bool hideCursor = true);
-	void Update();
+	void Update(int textureColorbuffer, int rbo);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	void SetPosition(float x, float y, float z);
