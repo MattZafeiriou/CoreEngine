@@ -1,7 +1,10 @@
+#define COREENGINE_EXPORTS
 #include "CoreEngine.h"
 #include "../Utils/EnvironmentVariablesUtils.cpp"
 #include "../Window/CoreWindow.h"
-
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -27,7 +30,12 @@ GLFWwindow* CoreEngine::getWindow()
 
 CoreEngine::CoreEngine()
 {
-	Init();
+	Init(800, 600);
+}
+
+CoreEngine::CoreEngine(int width, int height)
+{
+	Init(width, height);
 }
 
 CoreEngine::~CoreEngine()
@@ -44,16 +52,16 @@ void CoreEngine::SetLightShader(Shader* shader)
 	lightShader = shader;
 }
 
-void CoreEngine::Init()
+void CoreEngine::Init(int width, int height)
 {
-	setEnvironmentVariables("0.1.4", 1); // Set DEBUG to 1
+	setEnvironmentVariables("0.1.5", 1); // Set DEBUG to 1
 
 	/*
 	 * Create a windowed mode window and its OpenGL context
 	*/
 	CoreWindow coreWindow;
 	std::string title = std::string(getEnvironmentVariable("CORE_NAME")) + std::string(" v") + std::string(getEnvironmentVariable("CORE_VERSION"));
-	GLFWwindow* window = coreWindow.createWindow(title.c_str());
+	GLFWwindow* window = coreWindow.createWindow(title.c_str(), width, height);
 	this->window = window;
 
 	this->camera = new Camera(window, 1);
@@ -70,9 +78,9 @@ void CoreEngine::Init()
 
 	CreateQuadVAO();
 
-	framebufferShader = new Shader("Shaders/VertexShaders/framebuffer.glsl", "Shaders/FragmentShaders/framebuffer.glsl");
+	framebufferShader = new Shader("framebuffer.glsl", "framebuffer.glsl");
 
-	CreateFramebuffer();
+	CreateFramebuffer(width, height);
 	// Set the clear color
 	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 
@@ -126,9 +134,33 @@ int CoreEngine::GetCurrentSceneIndex()
 	return currentSceneIndex;
 }
 
+void CoreEngine::SetCustomPreRenderFunction(FunctionPointer pointer)
+{
+	this->customPreRenderFunction = pointer;
+}
+void CoreEngine::SetCustomPostRenderFunction(FunctionPointer pointer)
+{
+	this->customPostRenderFunction = pointer;
+}
+
+int CoreEngine::GetTextureColorBuffer()
+{
+	return textureColorbuffer;
+}
+
+void CoreEngine::SetPaused(bool paused)
+{
+	this->paused = paused;
+}
+
 void CoreEngine::Run()
 {
 	running = true;
+	if (defaultShader == nullptr)
+	{
+		std::cout << "Default shader not set" << std::endl;
+		Shutdown();
+	}
 	// Render loop
 	defaultShader->use();
 	while (!glfwWindowShouldClose(window) && running)
@@ -137,13 +169,19 @@ void CoreEngine::Run()
 		processInput(window);
 		camera->extractFrustumPlanes();
 
-		Render();
+		if (customPreRenderFunction != nullptr)
+			customPreRenderFunction();
 
-		camera->Update(textureColorbuffer, rbo);
+		// render
+		if (!paused)
+			Render();
 
+		if (customPostRenderFunction != nullptr)
+			customPostRenderFunction();
 		// Swap the front and back buffers
-		glfwSwapBuffers(window);
 
+		camera->Update();
+		glfwSwapBuffers(window);
 		// Poll for and process events
 		glfwPollEvents();
 	}
@@ -152,6 +190,11 @@ void CoreEngine::Run()
 
 void CoreEngine::Render()
 {
+	if (scenes.size() == 0)
+	{
+		std::cout << "No scenes to render" << std::endl;
+		return;
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
@@ -198,7 +241,7 @@ void CoreEngine::CreateQuadVAO()
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
-void CoreEngine::CreateFramebuffer()
+void CoreEngine::CreateFramebuffer(int width, int height)
 {
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -206,7 +249,7 @@ void CoreEngine::CreateFramebuffer()
 	// generate texture
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -216,7 +259,7 @@ void CoreEngine::CreateFramebuffer()
 
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
@@ -228,10 +271,20 @@ void CoreEngine::CreateFramebuffer()
 void CoreEngine::Shutdown()
 {
 	running = false;
+	glfwTerminate();
 }
 
 void CoreEngine::processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+		//glfwSetWindowShouldClose(window, true);
+
+	// mouse click
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
 }

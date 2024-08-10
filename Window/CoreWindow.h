@@ -6,7 +6,7 @@ class CoreWindow
 {
 public:
 	CoreWindow();
-	GLFWwindow* createWindow(const char* title = "Untitled Window");
+	GLFWwindow* createWindow(const char* title = "Untitled Window", int width = 800, int height = 600);
 };
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height)

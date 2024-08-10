@@ -12,6 +12,13 @@
 #include "../Objects/Cube/Cube.h"
 #include "../CoreEngine/CoreEngine.h"
 #include "../CoreEngine/Scenes/Scene.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+#include <iostream>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
 
 int main()
 {
@@ -23,8 +30,8 @@ int main()
 	coreEngine.AddScene(scene);
 	coreEngine.SetCurrentScene(0);
 
-	Shader shader("Shaders/VertexShaders/test.glsl", "Shaders/FragmentShaders/test.glsl");
-	Shader light("Shaders/VertexShaders/test.glsl", "Shaders/FragmentShaders/light.glsl");
+	Shader shader("test.glsl", "test.glsl");
+	Shader light("test.glsl", "light.glsl");
 
 	coreEngine.SetDefaultShader(&shader);
 	coreEngine.SetLightShader(&light);
@@ -42,15 +49,15 @@ int main()
 
 	for (int i = 0; i < 4; i++)
 	{
-		lightSources[i] = Light(camera, "Resources/Models/Default/Cube.obj", &light, glm::vec3(1.0f), 1.0f);
+		lightSources[i] = Light(camera, "Models/Default/cube.obj", &light, glm::vec3(1.0f), 1.0f);
 		lightSources[i].SetPosition(lightSourcesPositions[i].x, lightSourcesPositions[i].y, lightSourcesPositions[i].z);
 		lightSources[i].SetScale(0.2f);
 		lightSources[i].SetColor(glm::vec3(1.0f));
 		scene->AddLight(&lightSources[i]);
 	}
 
-	CoreObject bruh(camera, "Resources/Models/backpack/backpack.obj", &shader, 0);
-	bruh.SetPosition(0.0f, -2.0f, 0.0f);
+	//CoreObject bruh(camera, "Resources/Models/backpack/backpack.obj", &shader, 0);
+	//bruh.SetPosition(0.0f, -2.0f, 0.0f);
 
 	Cube cube(camera, &shader, glm::vec4(1.0f, 0.5f, 0.31f, 1.0f));
 
@@ -63,7 +70,7 @@ int main()
 
 	scene->AddObject(&floor);
 	scene->AddObject(&cube);
-	scene->AddObject(&bruh);
+	//scene->AddObject(&bruh);
 	//scene->AddObject(&test);
 	/*
 	 * Render loop

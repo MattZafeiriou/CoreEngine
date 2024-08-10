@@ -1,6 +1,6 @@
 #include "Cube.h"
 
-Cube::Cube(Camera* camera, Shader* shader, glm::vec4 color) : CoreObject(camera, "Resources/Models/Default/cube.obj", shader)
+Cube::Cube(Camera* camera, Shader* shader, glm::vec4 color) : CoreObject(camera, "Models/Default/cube.obj", shader)
 {
 	SetColor(color);
 }

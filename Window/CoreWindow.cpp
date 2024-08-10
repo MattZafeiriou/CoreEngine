@@ -27,11 +27,8 @@ CoreWindow::CoreWindow()
     glCullFace(GL_BACK);
 }
 
-GLFWwindow* CoreWindow::createWindow(const char* title)
+GLFWwindow* CoreWindow::createWindow(const char* title, int width, int height)
 {
-    int width = 800;
-    int height = 600;
-
     GLFWwindow* window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)
     {

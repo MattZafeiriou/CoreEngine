@@ -29,13 +29,15 @@ static void setEnvironmentVariables(const char* version, int DEBUG=0)
     setEnvironmentVariable("CORE_NAME", "CoreEngine");
     setEnvironmentVariable("CORE_VERSION", version);
     setEnvironmentVariable("CORE_DEBUG", DEBUG ? "1" : "0");
-    setEnvironmentVariable("CORE_FILE_PATH", (std::string(getEnvironmentVariable("USERPROFILE")) + std::string("\\Documents\\CoreEngine\\")).c_str());
+    setEnvironmentVariable("CORE_ASSETS_PATH", (std::string(getEnvironmentVariable("USERPROFILE")) + std::string("\\Documents\\" + std::string(getEnvironmentVariable("CORE_NAME")) + "\\Assets\\")).c_str());
+    setEnvironmentVariable("CORE_FILE_PATH", (std::string(getEnvironmentVariable("USERPROFILE")) + std::string("\\Documents\\" + std::string(getEnvironmentVariable("CORE_NAME")) + "\\")).c_str());
     if (DEBUG)
     {
         std::cout << "Setting environment variables:" << std::endl;
         std::cout << "CORE_NAME=" << getEnvironmentVariable("CORE_NAME") << std::endl;
         std::cout << "CORE_VERSION=" << getEnvironmentVariable("CORE_VERSION") << std::endl;
         std::cout << "CORE_DEBUG=" << getEnvironmentVariable("CORE_DEBUG") << std::endl;
+        std::cout << "CORE_ASSETS_PATH=" << getEnvironmentVariable("CORE_ASSETS_PATH") << std::endl;
         std::cout << "CORE_FILE_PATH=" << getEnvironmentVariable("CORE_FILE_PATH") << std::endl;
     }
 }

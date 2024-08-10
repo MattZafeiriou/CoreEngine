@@ -1,6 +1,7 @@
 #include "CoreObject.h"
 #include "../Mesh/Model.h"
 #include "../Objects/Cube/Cube.h"
+#include "../Utils/EnvironmentVariablesUtils.cpp"
 
 CoreObject::CoreObject(Camera* camera, GLuint VAO, Shader* shader, Material* material)
 {
@@ -26,7 +27,7 @@ CoreObject::CoreObject(Camera* camera, const char* path, Shader* shader, bool fl
 	this->shader = shader;
 	this->camera = camera;
 	this->isModel = true;
-	Model model(path, flip);
+	Model model((std::string(getEnvironmentVariable("CORE_ASSETS_PATH")) + std::string(path)).c_str(), flip);
 	meshes = model.GetMeshes();
 	this->changedModel = true;
 	this->hasTextures = false;

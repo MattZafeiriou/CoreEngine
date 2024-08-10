@@ -1,5 +1,5 @@
 #include "Shader.h"
-
+#include "../Utils/EnvironmentVariablesUtils.cpp"
 #include <glad/glad.h>
 #include <iostream>
 #include <sstream>
@@ -21,8 +21,8 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     try
     {
         // open files
-        vShaderFile.open(vertexPath);
-        fShaderFile.open(fragmentPath);
+        vShaderFile.open((std::string(getEnvironmentVariable("CORE_ASSETS_PATH")) + std::string("Shaders/VertexShaders/") + std::string(vertexPath)).c_str());
+        fShaderFile.open((std::string(getEnvironmentVariable("CORE_ASSETS_PATH")) + std::string("Shaders/FragmentShaders/") + std::string(vertexPath)).c_str());
         std::stringstream vShaderStream, fShaderStream;
         // read file's buffer contents into streams
         vShaderStream << vShaderFile.rdbuf();

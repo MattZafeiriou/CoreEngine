@@ -1,6 +1,6 @@
 #include "Plane.h"
 
-Plane::Plane(Camera* camera, Shader* shader, glm::vec4 color) : CoreObject(camera, "Resources/Models/Default/plane.obj", shader)
+Plane::Plane(Camera* camera, Shader* shader, glm::vec4 color) : CoreObject(camera, "Models/Default/plane.obj", shader)
 {
 	SetColor(color);
 }
