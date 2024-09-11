@@ -76,6 +76,17 @@ void Camera::mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	cameraFront = glm::normalize(direction);
 }
 
+void Camera::SetSize(int width, int height)
+{
+	lastW = width;
+	lastH = height;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, width, height);
+	glm::ortho(0.0f, (float)width, 0.0f, (float)height, closePlane, farPlane);
+
+	shouldUpdate = true;
+}
+
 void Camera::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	fov -= (float)yoffset;

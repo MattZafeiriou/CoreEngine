@@ -12,33 +12,57 @@ class CoreEngine
 {
 typedef void (*FunctionPointer)();
 public:
-	CoreEngine(int width, int height);
-	CoreEngine();
+	/*
+	* Creates a new CoreEngine object
+	* It initialises the library and creates a window with the specified width and height
+	* 
+	* 
+	* @param width The width of the window
+	* @param height The height of the window
+	* @param debug Whether to run the engine in debug mode
+	*/
+	CoreEngine(int width, int height, bool debug = 0);
+	/*
+	* Creates a new CoreEngine object
+	* It initialises the library and creates a window with the default width and height
+	* 
+	* 
+	* @param debug Whether to run the engine in debug mode
+	*/
+	CoreEngine(bool debug = 0);
 	~CoreEngine();
+	/*
+	* Runs the engine, the rendering process
+	* and handles input as well as anything else that is needed for the
+	* engine to run
+	* 
+	* To shut it down manually, call the Shutdown() function or set "running" to false
+	*/
 	void Run();
+	/*
+	* Renders the current scene
+	 */
+	void Render();
+	/*
+	* Shuts down the engine
+	*/
 	void Shutdown();
 	void SetCurrentScene(Scene* scene);
 	void SetCurrentScene(int index);
 	void AddScene(Scene* scene);
 	void SetDefaultShader(Shader* shader);
 	void SetLightShader(Shader* shader);
-	void SetCustomPreRenderFunction(FunctionPointer pointer);
-	void SetCustomPostRenderFunction(FunctionPointer pointer);
-	void SetPaused(bool paused);
-	Scene* GetCurrentScene();
+	void SetCustomRenderFunction(FunctionPointer pointer);
+	void SetInputEnabled(bool enabled);
 	int GetCurrentSceneIndex();
-	int GetTextureColorBuffer();
+	Scene* GetCurrentScene();
 	Camera* getCamera();
 	GLFWwindow* getWindow();
 protected:
 	void processInput(GLFWwindow* window);
 private:
-	void CreateFramebuffer(int width, int height);
-	void CreateQuadVAO();
-	void Render();
-	void Init(int width, int height);
-	FunctionPointer customPreRenderFunction;
-	FunctionPointer customPostRenderFunction;
+	void Init(int width, int height, bool debug);
+	FunctionPointer customRenderFunction;
 	GLFWwindow* window;
 	Camera* camera;
 	Shader* defaultShader;
@@ -46,12 +70,11 @@ private:
 	Shader* framebufferShader;
 	std::vector<Scene*> scenes;
 	unsigned int framebuffer;
-	unsigned int textureColorbuffer;
 	unsigned int quadVAO;
 	unsigned int quadVBO;
 	unsigned int rbo;
 	int currentSceneIndex = 0;
 	bool running;
-	bool paused = 0;
+	bool inputEnabled = true;
 };
 

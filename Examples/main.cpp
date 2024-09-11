@@ -22,7 +22,7 @@
 
 int main()
 {
-	CoreEngine coreEngine;
+	CoreEngine coreEngine(1);
 	Camera* camera = coreEngine.getCamera();
 	GLFWwindow* window = coreEngine.getWindow();
 

@@ -21,6 +21,7 @@ public:
 	void SetPosition(float x, float y, float z);
 	void setFov(float fov) { this->fov = fov; }
 	void SetRotation(float x, float y, float z);
+	void SetSize(int width, int height);
 	float getFov() { return fov; }
 	float deltaTime;
 	float lastFrame;

@@ -14,7 +14,7 @@ Model::Model(const char* path, bool flip)
 		loadModel(path, flip);
 		auto end = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double> elapsed = end - start;
-		cout << "Model loaded in " << elapsed.count() << " seconds" << endl;
+		cout << ">> Model loaded in " << elapsed.count() << " seconds" << endl;
 	}
 	else
 	{
